@@ -1,6 +1,8 @@
 defmodule UptimeWeb.Router do
   use UptimeWeb, :router
 
+  import UptimeWeb.UserAuth
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -8,6 +10,7 @@ defmodule UptimeWeb.Router do
     plug :put_root_layout, html: {UptimeWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_scope_for_user
   end
 
   pipeline :api do
@@ -42,5 +45,20 @@ defmodule UptimeWeb.Router do
       live_dashboard "/dashboard", metrics: UptimeWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+  end
+
+  ## Authentication routes (magic link only, no sign up)
+
+  scope "/", UptimeWeb do
+    pipe_through [:browser]
+
+    live_session :current_user,
+      on_mount: [{UptimeWeb.UserAuth, :mount_current_scope}] do
+      live "/users/log-in", UserLive.Login, :new
+      live "/users/log-in/:token", UserLive.Confirmation, :new
+    end
+
+    post "/users/log-in", UserSessionController, :create
+    delete "/users/log-out", UserSessionController, :delete
   end
 end
