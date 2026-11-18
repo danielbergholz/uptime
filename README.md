@@ -16,6 +16,8 @@ gente constrói o app inteiro com um agente de programação (Claude Code), do p
 o deploy, e aprende o que dá para delegar ao agente e o que continua sendo seu: ler o plano, conferir o
 diff, escrever o teste e decidir o que entra no projeto.
 
+[![Clube de Builders: builder não tem tempo ruim](docs/clube-de-builders.png)](https://bergholz.com.br/clube?utm_source=github&utm_content=uptime)
+
 O app evolui junto com as aulas, então ele ainda está em construção.
 
 ## Como acompanhar pelo histórico
