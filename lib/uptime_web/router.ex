@@ -21,8 +21,6 @@ defmodule UptimeWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-
-    live "/sites", SitesLive
   end
 
   # Other scopes may use custom stacks.
@@ -44,6 +42,17 @@ defmodule UptimeWeb.Router do
 
       live_dashboard "/dashboard", metrics: UptimeWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+  end
+
+  ## Admin area (login required)
+
+  scope "/", UptimeWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :require_authenticated_user,
+      on_mount: [{UptimeWeb.UserAuth, :require_authenticated}] do
+      live "/sites", SitesLive
     end
   end
 

@@ -6,6 +6,8 @@ defmodule UptimeWeb.SitesLiveTest do
 
   @stub Uptime.Monitoring.Checker
 
+  setup :register_and_log_in_user
+
   test "cadastra um site e ele aparece na lista", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/sites")
 
