@@ -1,0 +1,106 @@
+<Layouts.app flash={@flash}>
+  <div class="space-y-8">
+    <div>
+      <h1 class="text-2xl font-semibold tracking-tight">Sites monitorados</h1>
+      <p class="mt-1 text-sm text-base-content/70">
+        Cadastre um site e use “Verificar agora” para ver se está no ar e quanto tempo levou para responder.
+      </p>
+    </div>
+
+    <.form
+      for={@form}
+      id="site-form"
+      phx-change="validate"
+      phx-submit="save"
+      class="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm"
+    >
+      <div class="grid gap-x-4 sm:grid-cols-[1fr_2fr]">
+        <.input field={@form[:name]} type="text" label="Nome" placeholder="Meu blog" />
+        <.input
+          field={@form[:url]}
+          type="text"
+          label="URL"
+          placeholder="https://exemplo.com"
+          inputmode="url"
+        />
+      </div>
+      <button
+        id="site-submit"
+        type="submit"
+        phx-disable-with="Salvando..."
+        class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-content transition hover:opacity-90 active:scale-95"
+      >
+        <.icon name="hero-plus" class="size-4" /> Cadastrar site
+      </button>
+    </.form>
+
+    <ul id="sites" phx-update="stream" class="space-y-3">
+      <li
+        id="sites-empty"
+        class="hidden rounded-2xl border border-dashed border-base-300 p-8 text-center text-sm text-base-content/60 only:block"
+      >
+        Nenhum site cadastrado ainda.
+      </li>
+      <li
+        :for={{dom_id, site} <- @streams.sites}
+        id={dom_id}
+        class="flex flex-col gap-4 rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div class="min-w-0 space-y-1">
+          <div class="flex items-center gap-2">
+            <h2 class="truncate font-semibold">{site.name}</h2>
+            <%= cond do %>
+              <% is_nil(site.last_check) -> %>
+                <span
+                  id={"status-#{site.id}"}
+                  class="rounded-full bg-base-200 px-2 py-0.5 text-xs font-medium text-base-content/70"
+                >
+                  Nunca verificado
+                </span>
+              <% site.last_check.up -> %>
+                <span
+                  id={"status-#{site.id}"}
+                  class="rounded-full bg-success/15 px-2 py-0.5 text-xs font-medium text-success"
+                >
+                  No ar
+                </span>
+              <% true -> %>
+                <span
+                  id={"status-#{site.id}"}
+                  class="rounded-full bg-error/15 px-2 py-0.5 text-xs font-medium text-error"
+                >
+                  Fora do ar
+                </span>
+            <% end %>
+          </div>
+          <p class="truncate text-sm text-base-content/60">{site.url}</p>
+          <p :if={site.last_check} id={"details-#{site.id}"} class="text-xs text-base-content/60">
+            <span :if={site.last_check.up}>
+              {site.last_check.response_time_ms} ms · HTTP {site.last_check.status_code}
+            </span>
+            <span :if={!site.last_check.up}>
+              {site.last_check.error} · {site.last_check.response_time_ms} ms
+            </span>
+            · verificado em {format_time(site.last_check.inserted_at)}
+          </p>
+        </div>
+
+        <button
+          id={"check-#{site.id}"}
+          type="button"
+          phx-click="check"
+          phx-value-id={site.id}
+          disabled={MapSet.member?(@checking_ids, site.id)}
+          class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-base-300 px-4 py-2 text-sm font-medium transition hover:bg-base-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <%= if MapSet.member?(@checking_ids, site.id) do %>
+            <.icon name="hero-arrow-path" class="size-4 motion-safe:animate-spin" />
+            Verificando...
+          <% else %>
+            <.icon name="hero-bolt" class="size-4" /> Verificar agora
+          <% end %>
+        </button>
+      </li>
+    </ul>
+  </div>
+</Layouts.app>

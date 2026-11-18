@@ -39,3 +39,7 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# Checagens de sites usam Req.Test (sem rede) e um teto curto para os testes de timeout
+config :uptime, :checker_req_options, plug: {Req.Test, Uptime.Monitoring.Checker}
+config :uptime, :checker_timeout, 200
