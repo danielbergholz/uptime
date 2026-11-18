@@ -23,6 +23,25 @@ end
 config :uptime, UptimeWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
+# Admin allowlist: only these emails can log in (magic link, no sign up).
+# Comma-separated, e.g. ADMIN_EMAILS="ana@example.com,bob@example.com".
+# Empty by default, so nobody gets in until it is set. Tests set it themselves.
+if config_env() != :test do
+  admin_emails =
+    "ADMIN_EMAILS"
+    |> System.get_env("")
+    |> String.split(",", trim: true)
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.map(&String.downcase/1)
+
+  config :uptime, admin_emails: admin_emails
+
+  if mail_from = System.get_env("MAIL_FROM") do
+    config :uptime, mail_from: mail_from
+  end
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
